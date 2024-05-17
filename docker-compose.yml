@@ -1,4 +1,4 @@
-version: '3.4'
+version: '3.8'
 
 services:
   flaskdockerstarterkit:
@@ -10,8 +10,9 @@ services:
     ports:
       - 5000:5000
     volumes:
-      - .:/flask_starterkit:cached
+      - my_volumes:/flask_starterkit:cached  # Mount named volume to container directory
     env_file: .env
+
   debugger:
     image: debugger
     build:
@@ -19,11 +20,12 @@ services:
       dockerfile: ./Dockerfile
       target: debugger
     ports:
-      - 5000:5000
+      - 5001:5000  # Changed host port to avoid conflict
       - 5678:5678
     volumes:
-      - .:/flask_starterkit:cached
+      - my_volumes:/debugger_mount:cached  # Mount named volume to container directory
     env_file: .env
+
   test-runner:
     image: test-runner
     build:
@@ -31,3 +33,6 @@ services:
       dockerfile: ./Dockerfile
       target: test
     env_file: .env
+
+volumes:
+  my_volumes:  # Define named volume
