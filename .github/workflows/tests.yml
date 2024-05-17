@@ -1,22 +1,25 @@
-name: Run tests
+name: Pylint Linter
 
 on:
-  push:
-    branches: [ main ]
+  pull_request:
+    types: ['opened','reopened']
 
 jobs:
   build:
     runs-on: ubuntu-latest
-
+    strategy:
+      matrix:
+        python-version: ["3.8", "3.9", "3.10"]
     steps:
-      - uses: actions/checkout@v3
-      - name: Generate required .env file
-        run: |
-          echo DEBUG=True >> .env
-          echo FLASK_DEBUG=1 >> .env
-          echo FLASK_APP=run.py >> .env
-      - name: Building containers
-        run: docker-compose build
-      - name: Run tests
-        run: docker-compose up --abort-on-container-exit test-runner
-      
+    - uses: actions/checkout@v4
+    - name: Set up Python ${{ matrix.python-version }}
+      uses: actions/setup-python@v3
+      with:
+        python-version: ${{ matrix.python-version }}
+    - name: Install dependencies
+      run: |
+        python -m pip install --upgrade pip
+        python -m pip install -r requirements.txt
+    - name: Analysing the code with pylint
+      run: |
+        pylint $(git ls-files '*.py')

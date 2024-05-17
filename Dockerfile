@@ -1,46 +1,52 @@
-# For more information, please refer to https://aka.ms/vscode-docker-python
+# Base image
 FROM python:3.10-slim as base
 
+# Expose port 5000
 EXPOSE 5000
 
-# Keeps Python from generating .pyc files in the container
-ENV PYTHONDONTWRITEBYTECODE=1
+# Prevent Python from generating .pyc files and enable unbuffered output
+ENV PYTHONDONTWRITEBYTECODE=1 \
+    PYTHONUNBUFFERED=1
 
-# Turns off buffering for easier container logging
-ENV PYTHONUNBUFFERED=1
+# Install dependencies
+COPY requirements.txt /tmp/requirements.txt
+RUN pip install --no-cache-dir -r /tmp/requirements.txt
 
-# Install pip requirements
-COPY requirements.txt .
-RUN python -m pip install -r requirements.txt
-
+# Set working directory
 WORKDIR /flask_starterkit
+
+# Copy application code
 COPY . /flask_starterkit
 
-# Creates a non-root user with an explicit UID and adds permission to access the /app folder
-# For more info, please refer to https://aka.ms/vscode-docker-python-configure-containers
-RUN adduser -u 5678 --disabled-password --gecos "" appuser && chown -R appuser /flask_starterkit
+# Create a non-root user and set appropriate permissions
+RUN adduser --uid 5678 --disabled-password --gecos "" appuser && \
+    chown -R appuser /flask_starterkit
 USER appuser
 
-# Degguer config
+# Debugger configuration
 FROM base as debugger
 
 RUN pip install debugpy
 
-CMD ["python", "-m", "debugpy", "--listen", "0.0.0.0:5678", "--wait-for-client", "-m", "flask", "run", "-h","0.0.0.0" , "-p","5000"]
+# Command to run the debugger
+CMD ["python", "-m", "debugpy", "--listen", "0.0.0.0:5678", "--wait-for-client", "-m", "flask", "run", "--host", "0.0.0.0", "--port", "5000"]
 
-# Flask server in dev mode
+# Development server
 FROM base as debug
-CMD ["flask", "run", "--host", "0.0.0.0"]
 
+# Command to run the development server
+CMD ["flask", "run", "--host", "0.0.0.0", "--port", "5000"]
+
+# Test stage
 FROM base as test
 
 RUN pip install pytest
 
-CMD ["python","-m","pytest"]
+# Command to run tests
+CMD ["python", "-m", "pytest"]
 
-
-# Production image
+# Production stage
 FROM base as prod
 
-CMD ["flask", "run", "--host", "0.0.0.0"]
-
+# Command to run the production server
+CMD ["flask", "run", "--host", "0.0.0.0", "--port", "5000"]
