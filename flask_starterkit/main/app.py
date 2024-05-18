@@ -7,3 +7,7 @@ flask_app = create_app()
 @flask_app.route("/")
 def home_route():
     return "Hello World !"
+
+@flask_app.route("/test")
+def home_route():
+    return "Hello World test !"
