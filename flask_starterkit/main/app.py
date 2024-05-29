@@ -11,3 +11,7 @@ def home_route():
 @flask_app.route("/test")
 def home_route():
     return "Hello World test !"
+
+@flask_app.route("/me")
+def home_route():
+    return "Hello World !"
