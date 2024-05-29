@@ -10,7 +10,7 @@ jobs:
   build:
     runs-on: ubuntu-latest
 
-    steps:
+    steps:                              
       - uses: actions/checkout@v4
       - name: Generate requied .env file
         run: |
@@ -21,3 +21,4 @@ jobs:
         run: docker compose build
       - name: Run tests
         run: docker compose up --abort-on-container-exit test-runner
+
